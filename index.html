@@ -1921,6 +1921,11 @@ function calcBest(prog,entries){
   const lEs=entries.filter(e=>e.type==='lang');const dEs=entries.filter(e=>e.type==='dom');const gE=entries.find(e=>e.type==='gat');
   const lN=lEs.map(e=>e.name);const dN=dEs.map(e=>e.name);const hG=!!gE;
   if(!isEligible(prog,lN,dN,hG))return null;
+  // Detect if language is eligibility-only (not counted in merit score)
+  // Pattern: combos start with domain subjects + "must appear in language" is a global footer
+  const fullText=prog.eligibility.replace(/\r?\n/g,' ').replace(/\s+/g,' ');
+  const langEligOnly=/candidates?\s+must\s+appear\s+in\s+any\s+one\s+language\s+from\s+list\s*a/i.test(fullText)
+    && !/any\s+one\s+language\s+from\s+list\s*a/i.test(fullText.split(/\bOR\b/i)[0]);
   const text=prog.eligibility.replace(/\r?\n/g,' ').replace(/\s+/g,' ');
   const combos=text.split(/\bOR\b/i).map(s=>s.trim()).filter(Boolean);
   let bestPct=-1,bestSc=0,bestMx=0,bestBreakdown=[],bestComboLabel='';
@@ -1936,11 +1941,14 @@ function calcBest(prog,entries){
 
     // Languages
     const lCt=/any\s+two\s+language/.test(t)?2:(/list\s+a|language\s+from|must.*language/.test(t)?1:0);
-    if(lCt>0){
+    if(lCt>0&&!langEligOnly){
       [...lEs].sort((a,b)=>b.score-a.score).slice(0,lCt).forEach(e=>{
         sc+=e.score;mx+=250;
         breakdown.push({subject:e.name,score:e.score,type:'lang'});
       });
+    } else if(langEligOnly&&lEs.length>0){
+      // Language required for eligibility but NOT counted in merit score
+      breakdown.push({subject:lEs[0].name,score:null,type:'lang',eligOnly:true});
     }
     // GAT
     if(/general\s+aptit\w+\s+test|general\s+test|section\s+iii/.test(t)&&gE){
@@ -2027,15 +2035,24 @@ function scoreBreakdownHTML(prog){
   const bd=prog.breakdown;
   const typeLabel={lang:'Language',dom:'Domain Subject',gat:'General Aptitude Test'};
   const typeColor={lang:'var(--sky)','dom':'var(--gold2)','gat':'var(--green)'};
-  const rows=bd.map(item=>`
-    <tr>
+  const rows=bd.map(item=>{
+    if(item.eligOnly){
+      return `<tr>
+        <td style="padding:7px 10px">
+          <span style="font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(255,255,255,.08);color:var(--text3);margin-right:6px">Language</span>
+          <span style="color:var(--text);font-weight:500">${item.subject}</span>
+        </td>
+        <td colspan="2" style="padding:7px 10px;text-align:right;font-size:.78rem;color:var(--text3);font-style:italic">Eligibility only — not counted in merit score</td>
+      </tr>`;
+    }
+    return `<tr>
       <td style="padding:7px 10px">
         <span style="font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(255,255,255,.08);color:var(--text3);margin-right:6px">${typeLabel[item.type]||item.type}</span>
         <span style="color:var(--text);font-weight:500">${item.subject}</span>
       </td>
       <td style="padding:7px 10px;text-align:right;font-weight:700;color:var(--gold2);font-size:.95rem">${item.score.toFixed(2)}</td>
       <td style="padding:7px 10px;text-align:right;color:var(--text3);font-size:.82rem">/ 250</td>
-    </tr>`).join('');
+    </tr>`;}).join('');
   const pct=prog.scoreMax>0?(prog.studentScore/prog.scoreMax*100).toFixed(1):0;
   return `
     <div style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:8px;margin:14px 0 16px;overflow:hidden">
