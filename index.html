@@ -64,6 +64,7 @@ body {
 }
 
 .hero-bg {
+  pointer-events: none;
   position: absolute; inset: 0;
   background: url("https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/University_of_Delhi_main_building.jpg/1280px-University_of_Delhi_main_building.jpg") center 30%/cover no-repeat;
   filter: brightness(.12) saturate(.2);
@@ -71,6 +72,7 @@ body {
 
 /* Animated gradient overlay */
 .hero-overlay {
+  pointer-events: none;
   position: absolute; inset: 0;
   background: 
     radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,200,66,0.08) 0%, transparent 70%),
@@ -79,6 +81,7 @@ body {
 
 /* Animated grid pattern */
 .hero-grid {
+  pointer-events: none;
   position: absolute; inset: 0;
   background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
@@ -86,7 +89,8 @@ body {
   mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 80%);
 }
 
-.hero-body { position: relative; z-index: 2; max-width: 820px; }
+.hero-body {
+  position: relative; z-index: 2; position: relative; z-index: 2; max-width: 820px; }
 
 .hero-badge {
   display: inline-flex; align-items: center; gap: 8px;
@@ -1924,10 +1928,12 @@ function calcBest(prog,entries){
   // Detect if language is eligibility-only (not counted in merit score)
   // Pattern: combos start with domain subjects + "must appear in language" is a global footer
   const fullText=prog.eligibility.replace(/\r?\n/g,' ').replace(/\s+/g,' ');
-  const langEligOnly=/candidates?\s+must\s+appear\s+in\s+any\s+one\s+language\s+from\s+list\s*a/i.test(fullText)
-    && !/any\s+one\s+language\s+from\s+list\s*a/i.test(fullText.split(/\bOR\b/i)[0]);
-  const text=prog.eligibility.replace(/\r?\n/g,' ').replace(/\s+/g,' ');
-  const combos=text.split(/\bOR\b/i).map(s=>s.trim()).filter(Boolean);
+  // langEligOnly: language required for eligibility but not counted in merit score
+  // Check if formula part (before "Merit will"/"Candidates") contains no language
+  const _fc=fullText.split(/\bOR\b/i)[0];
+  const _fp=_fc.replace(/merit\s+will\b.*/i,'').replace(/candidates?\s+must\b.*/i,'').trim();
+  const langEligOnly=/candidates?\s+must\s+appear\s+in\s+any\s+one\s+language\s+from\s+list\s*a/i.test(fullText)&&!/language|list\s*a/i.test(_fp);
+  const combos=fullText.split(/\bOR\b/i).map(s=>s.trim()).filter(Boolean);
   let bestPct=-1,bestSc=0,bestMx=0,bestBreakdown=[],bestComboLabel='';
   for(let ci=0;ci<combos.length;ci++){
     const raw=combos[ci];
@@ -2216,7 +2222,7 @@ function closeEligDetail() {
 
 
 function switchTab(tab, btn) {
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.htab').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('tab-checker').classList.toggle('hidden', tab!=='checker');
   document.getElementById('tab-predictor').classList.toggle('hidden', tab!=='predictor');
