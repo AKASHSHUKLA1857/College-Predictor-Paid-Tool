@@ -1689,7 +1689,6 @@ footer {
       <button class="htab" onclick="switchTab('predictor',this)">College &amp; Course Predictor</button>
       <button class="htab" onclick="switchTab('eligibility',this)">📚 Programme Eligibility</button>
       <button class="htab" onclick="switchTab('counselling',this)">🎓 Personalized Counselling</button>
-      <button class="htab" onclick="switchTab('video',this)">▶ How It Works</button>
     </div>
   </div>
 </header>
@@ -1908,21 +1907,6 @@ footer {
         <a href="https://forms.gle/d8bjaoVM6bdaoSCn6" target="_blank" class="btn btn-go" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;margin-top:8px">📤 Submit Payment Screenshot →</a>
         <div class="gate-note" style="margin-top:14px">🕐 Expert will contact you within <strong>24 hours</strong> of payment verification.</div>
       </div>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ═══ TAB: HOW IT WORKS (VIDEO) ═══ -->
-<div id="tab-video" class="hidden">
-<div class="panel">
-  <div class="ph">
-    <span class="ph-icon">▶</span>
-    <div><h2>How It Works</h2><p>Watch this short video to understand how to use the DU Admission Predictor Tool</p></div>
-  </div>
-  <div class="pb">
-    <div class="video-wrap" style="text-align:center;padding:32px 16px">
-      <a href="https://www.youtube.com/watch?v=kolBtu-gxMA" target="_blank" class="btn btn-ol" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none">▶ Watch on YouTube</a>
     </div>
   </div>
 </div>
@@ -2197,9 +2181,9 @@ function drawProgCard(progs,container){
       +'<div class="pcbody">'
         +'<div class="ebox"><strong>Eligibility Criteria</strong>'+prog.eligibility.replace(/\n/g,'<br>')+'</div>'
         +'<table class="ctbl"><thead><tr><th>#</th><th>College Name</th><th>UR</th><th>OBC</th><th>SC</th><th>ST</th><th>EWS</th><th>PwBD</th></tr></thead><tbody>'
-        +cols.slice(0,25).map((c,i)=>'<tr><td><span class="rnk">'+(i+1)+'</span></td><td>'+c.name+'</td><td>'+f(c.UR)+'</td><td>'+f(c.OBC)+'</td><td>'+f(c.SC)+'</td><td>'+f(c.ST)+'</td><td>'+f(c.EWS)+'</td><td>'+f(c.PwBD)+'</td></tr>').join('')
+        +cols.map((c,i)=>'<tr><td><span class="rnk">'+(i+1)+'</span></td><td>'+c.name+'</td><td>'+f(c.UR)+'</td><td>'+f(c.OBC)+'</td><td>'+f(c.SC)+'</td><td>'+f(c.ST)+'</td><td>'+f(c.EWS)+'</td><td>'+f(c.PwBD)+'</td></tr>').join('')
         +'</tbody></table>'
-        +(cols.length>25?'<p class="tmore">Top 25 of '+cols.length+' colleges shown &middot; sorted by UR cut-off highest first</p>':'')
+        +'<p class="tmore">'+cols.length+' college'+(cols.length!==1?'s':'')+' shown &middot; sorted by UR cut-off highest first</p>'
       +'</div>';
     container.appendChild(card);
   });
@@ -2261,9 +2245,9 @@ function drawPredCard(progs,container){
         +'<div class="ebox"><strong>Eligibility Criteria</strong>'+prog.eligibility.replace(/\n/g,'<br>')+'</div>'
         +scoreBreakdownHTML(prog)
         +'<table class="ctbl"><thead><tr><th>#</th><th>College</th><th>UR Cutoff</th><th>'+selCat+' Cutoff</th><th>Your Score</th><th>Status</th></tr></thead><tbody>'
-        +cols.slice(0,25).map((c,i)=>{const co=c[selCat]||c.UR||0;const ok=prog.studentScore>=co;return'<tr><td><span class="rnk">'+(i+1)+'</span></td><td>'+c.name+'</td><td>'+f(c.UR)+'</td><td>'+f(co)+'</td><td>'+prog.studentScore.toFixed(2)+'</td><td class="'+(ok?'q-y':'q-n')+'">'+(ok?'✓ Qualified':'✗ Below cutoff')+'</td></tr>';}).join('')
+        +cols.map((c,i)=>{const co=c[selCat]||c.UR||0;const ok=prog.studentScore>=co;return'<tr><td><span class="rnk">'+(i+1)+'</span></td><td>'+c.name+'</td><td>'+f(c.UR)+'</td><td>'+f(co)+'</td><td>'+prog.studentScore.toFixed(2)+'</td><td class="'+(ok?'q-y':'q-n')+'">'+(ok?'✓ Qualified':'✗ Below cutoff')+'</td></tr>';}).join('')
         +'</tbody></table>'
-        +(cols.length>25?'<p class="tmore">Top 25 of '+cols.length+' colleges &middot; sorted by UR cut-off highest first</p>':'')
+        +'<p class="tmore">'+cols.length+' college'+(cols.length!==1?'s':'')+' &middot; sorted by UR cut-off highest first</p>'
       +'</div>';
     container.appendChild(card);
   });
@@ -2396,7 +2380,6 @@ function switchTab(tab, btn) {
   document.getElementById('tab-predictor').classList.toggle('hidden', tab!=='predictor');
   document.getElementById('tab-eligibility').classList.toggle('hidden', tab!=='eligibility');
   document.getElementById('tab-counselling').classList.toggle('hidden', tab!=='counselling');
-  document.getElementById('tab-video').classList.toggle('hidden', tab!=='video');
   if (tab==='eligibility') initEligibilityTab();
   // Load YouTube iframe only when tab is opened
   if (tab==='video') loadYouTubeTab();
