@@ -2135,7 +2135,20 @@ function calcBest(prog,entries){
       });
     }
     const pct=mx>0?sc/mx:0;
-    if(pct>bestPct){bestPct=pct;bestSc=sc;bestMx=mx;bestBreakdown=breakdown;bestComboLabel=comboLabel;}
+    // Tiebreaker: when two combinations give equal score, prefer the one where the
+    // higher-scoring subject was chosen as the compulsory subject.
+    // e.g. for B.Com (Hons.): if Acct(240) > Maths(220), prefer the combo that locked Acct.
+    const acctE=dEs.find(e=>e.name==='Accountancy / Book Keeping');
+    const mathE=dEs.find(e=>e.name==='Mathematics/ Applied Mathematics');
+    const acctInCombo=breakdown.some(b=>b.subject==='Accountancy / Book Keeping'&&b.type==='dom');
+    const mathInCombo=breakdown.some(b=>b.subject==='Mathematics/ Applied Mathematics'&&b.type==='dom');
+    // Score of compulsory subject in current combo vs best so far
+    const curCompulsoryScore=(acctE&&mathE)?(acctInCombo&&mathInCombo?0:acctInCombo?(acctE.score-mathE.score):(mathE.score-acctE.score)):0;
+    const bestAcctInCombo=bestBreakdown.some(b=>b.subject==='Accountancy / Book Keeping'&&b.type==='dom');
+    const bestMathInCombo=bestBreakdown.some(b=>b.subject==='Mathematics/ Applied Mathematics'&&b.type==='dom');
+    const bestCompulsoryScore=(acctE&&mathE)?(bestAcctInCombo&&bestMathInCombo?0:bestAcctInCombo?(acctE.score-mathE.score):(mathE.score-acctE.score)):0;
+    const isBetter=pct>bestPct||(pct===bestPct&&curCompulsoryScore>bestCompulsoryScore);
+    if(isBetter){bestPct=pct;bestSc=sc;bestMx=mx;bestBreakdown=breakdown;bestComboLabel=comboLabel;}
   }
   // DU proration: if best combo uses Language + 1 Domain + GAT (raw max=750),
   // normalize to 1000-mark scale: normalizedScore = (rawScore × 1000) / 750
