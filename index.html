@@ -2123,20 +2123,14 @@ function calcBest(prog,entries){
         if(e&&!used.has(hd.n)){sc+=e.score;mx+=250;used.add(hd.n);breakdown.push({subject:e.name,score:e.score,type:'dom'});}
       }
     }
-    // Any N other domains
+    // Any N other domains — pick best N from all remaining (not yet used) domain subjects.
+    // DU evaluates each combination independently: if Combo I locks Mathematics, then
+    // Accountancy is freely available in the remaining pool (and vice versa for Combo II).
+    // The best combination is selected at the end, giving the maximum possible score.
     const mN=t.match(/any\s+(?:other\s+|additional\s+)?(one|two|three|four|five|\d)\s+(?:other\s+|additional\s+)?(?:subject|domain)/);
     if(mN){
       const need=w2n(mN[1]);
-      // For B.Com (Hons.) style combos: if Accountancy is locked as required subject,
-      // exclude Mathematics from the remaining pool (it's the other combination's key subject), and vice versa.
-      const acctLocked=used.has('Accountancy / Book Keeping');
-      const mathLocked=used.has('Mathematics/ Applied Mathematics');
-      dEs.filter(e=>{
-        if(used.has(e.name))return false;
-        if(acctLocked&&e.name==='Mathematics/ Applied Mathematics')return false;
-        if(mathLocked&&e.name==='Accountancy / Book Keeping')return false;
-        return true;
-      }).sort((a,b)=>b.score-a.score).slice(0,need).forEach(e=>{
+      dEs.filter(e=>!used.has(e.name)).sort((a,b)=>b.score-a.score).slice(0,need).forEach(e=>{
         sc+=e.score;mx+=250;used.add(e.name);breakdown.push({subject:e.name,score:e.score,type:'dom'});
       });
     }
